@@ -1,14 +1,14 @@
 # lib/data_loader.py
 import requests
-import zipfile
+import gzip
 import io
 import time
 import os
 import importlib
 from psycopg2.extras import execute_values
 
-from lib.config import LANGUAGE_CONFIG, DICT_DIR
-from lib.database import get_db_connection, init_db
+from .config import LANGUAGE_CONFIG, DICT_DIR
+from .database import get_db_connection, init_db
 
 def _download_file(url, local_path):
     print(f"Downloading to '{os.path.basename(local_path)}'...")
@@ -18,10 +18,11 @@ def _download_file(url, local_path):
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-def _extract_zip(zip_path, extract_to_dir):
-    print(f"Extracting '{os.path.basename(zip_path)}'...")
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_to_dir)
+def _extract_gzip(gz_path, extract_to_path):
+    print(f"Extracting '{os.path.basename(gz_path)}'...")
+    with gzip.open(gz_path, 'rb') as gz:
+        with open(extract_to_path, 'wb') as f:
+            f.write(gz.read())
 
 def populate_database():
     """Orchestrates the full data loading pipeline."""
@@ -34,20 +35,22 @@ def populate_database():
         for lang_conf in LANGUAGE_CONFIG:
             name = lang_conf['name']
             parser_module_name = lang_conf['parser_module']
+            file_to_parse = lang_conf['local_path']
             
             print(f"\n--- Processing: {name} ---")
             start_time = time.time()
             
             try:
-                # Download and extract
-                if lang_conf['download_type'] == 'zip':
-                    zip_download_path = lang_conf['local_path'] + ".zip"
-                    _download_file(lang_conf['url'], zip_download_path)
-                    _extract_zip(zip_download_path, DICT_DIR)
-                    file_to_parse = lang_conf['local_path'] # The extracted file path
-                else: # 'direct'
-                    _download_file(lang_conf['url'], lang_conf['local_path'])
-                    file_to_parse = lang_conf['local_path']
+                # Skip download if file exists
+                if not os.path.exists(file_to_parse):
+                    if lang_conf['download_type'] == 'gz':
+                        gz_download_path = file_to_parse + ".gz"
+                        _download_file(lang_conf['url'], gz_download_path)
+                        _extract_gzip(gz_download_path, file_to_parse)
+                    else: # 'direct'
+                        _download_file(lang_conf['url'], file_to_parse)
+                else:
+                    print(f"File '{os.path.basename(file_to_parse)}' already exists, skipping download...")
                 
                 # Dynamically import the correct parser
                 parser_module = importlib.import_module(f".parsers.{parser_module_name}", package="lib")
