@@ -36,3 +36,13 @@ LANGUAGE_CONFIG = [
         'parser_module': 'cedict_parser'
     }
 ]
+
+# --- Filtering Configuration ---
+# Keywords that identify low-quality or "meta" definitions to be filtered out by the parsers.
+META_KEYWORDS = [
+    'variant of',
+    'see ',
+    'abbr',
+    'surname ',
+    'old variant of',
+]
