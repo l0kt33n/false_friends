@@ -1,0 +1,23 @@
+# .gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data and Logs
+dict/
+logs/
+postgres_data/
+
+# IDEs
+.idea/
+.vscode/
+
+# macOS
+.DS_Store

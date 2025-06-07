@@ -1,0 +1,21 @@
+# docker-compose.yml
+# This file defines our PostgreSQL database service.
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine  # Use the lightweight and modern Postgres 16 image
+    container_name: false_friends_db
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=lang_db
+    ports:
+      - "5432:5432" # Map port 5432 on your Mac to port 5432 in the container
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Persist database data on your local machine
+
+volumes:
+  postgres_data:
