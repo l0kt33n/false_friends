@@ -1,12 +1,16 @@
 # lib/parsers/jmdict_parser.py
 from xml.etree import ElementTree as ET
-from typing import Generator, Tuple
+from typing import Generator, Tuple, Dict
+from collections import defaultdict
 from ..config import META_KEYWORDS  # Import from the centralized config
 
 def parse(file_path: str) -> Generator[Tuple[str, str], None, None]:
     """
-    Parses the JMDict XML file memory-efficiently, filtering out low-quality definitions.
+    Parses the JMDict XML file memory-efficiently, combining definitions for the same character.
     """
+    # Dictionary to collect all definitions for each kanji
+    word_definitions: Dict[str, list] = defaultdict(list)
+    
     context = ET.iterparse(file_path, events=('end',))
     for _, elem in context:
         if elem.tag == 'entry':
@@ -25,9 +29,20 @@ def parse(file_path: str) -> Generator[Tuple[str, str], None, None]:
             ]
 
             if filtered_defs:
-                full_definition = '; '.join(filtered_defs)
                 for k_ele in kanji_elements:
                     if k_ele.text:
-                        yield (k_ele.text, full_definition)
+                        word_definitions[k_ele.text].extend(filtered_defs)
             
             elem.clear()
+    
+    # Yield combined definitions for each character
+    for word, defs in word_definitions.items():
+        # Remove duplicates while preserving order
+        unique_defs = []
+        for d in defs:
+            if d not in unique_defs:
+                unique_defs.append(d)
+        
+        combined_definition = '; '.join(unique_defs)
+        if combined_definition:
+            yield (word, combined_definition)
