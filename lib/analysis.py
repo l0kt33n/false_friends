@@ -7,12 +7,12 @@ from .database import get_db_connection
 # Load the model once when the module is imported for efficiency.
 # This will raise a helpful error if the model isn't downloaded.
 try:
-    NLP = spacy.load("en_core_web_sm")
+    NLP = spacy.load("en_core_web_md")
 except OSError:
     print(
         "\n--- Spacy Model Not Found ---"
         "\nPlease install the model by running this command in your terminal:"
-        "\npython -m spacy download en_core_web_sm\n"
+        "\npython -m spacy download en_core_web_md\n"
     )
     NLP = None  # Set to None to avoid further errors during import
 
