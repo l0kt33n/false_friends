@@ -8,7 +8,7 @@ CEDICT_LINE_RE = re.compile(
 
 def parse(file_path: str) -> Generator[Tuple[str, str], None, None]:
     """
-    Parses the CC-CEDICT file line by line.
+    Parses the CC-CEDICT file line by line, filtering out low-quality definitions.
 
     Yields:
         A tuple containing (word, combined_definition_string).
@@ -22,6 +22,23 @@ def parse(file_path: str) -> Generator[Tuple[str, str], None, None]:
             match = CEDICT_LINE_RE.match(line)
             if match:
                 simplified_word = match.group('simp')
-                definitions = '; '.join(d.strip() for d in match.group('english').split('/') if d.strip())
+                
+                # Get all definitions for the entry
+                all_defs = [d.strip() for d in match.group('english').split('/') if d.strip()]
+                
+                # Filter out unhelpful "meta" definitions
+                filtered_defs = [
+                    d for d in all_defs 
+                    if not d.lower().startswith('surname ') 
+                    and not d.lower().startswith('variant of ')
+                    and not d.lower().startswith('abbr. for ')
+                ]
+                
+                # If filtering removed all definitions, skip this word entry entirely.
+                if not filtered_defs:
+                    continue
+                    
+                definitions = '; '.join(filtered_defs)
+
                 if simplified_word and definitions:
                     yield (simplified_word, definitions)
