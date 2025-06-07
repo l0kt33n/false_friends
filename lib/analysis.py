@@ -35,11 +35,20 @@ def get_cosine_similarity(text1, text2):
     return doc1.similarity(doc2)
 
 
-def find_all_false_friends(base_language, target_language, similarity_threshold=0.1):
-    """Finds false friends by querying the database."""
+def find_all_false_friends(
+    base_language, 
+    target_language, 
+    similarity_threshold=0.1,
+    use_frequency_filter=False,
+    freq_rank_threshold=10000
+):
+    """Finds false friends by querying the database, with an optional frequency filter."""
     print(f"\nFinding false friends between '{base_language}' and '{target_language}'...")
     
     with get_db_connection() as conn:
+        params = {'base_lang': base_language, 'target_lang': target_language}
+        
+        # Base query
         query = """
             SELECT
                 T1.word,
@@ -49,7 +58,11 @@ def find_all_false_friends(base_language, target_language, similarity_threshold=
             JOIN words T2 ON T1.word = T2.word
             WHERE T1.language = %(base_lang)s AND T2.language = %(target_lang)s
         """
-        params = {'base_lang': base_language, 'target_lang': target_language}
+        
+        # Add frequency filter to the query if enabled
+        if use_frequency_filter:
+            query += " AND T1.frequency_rank <= %(threshold)s AND T2.frequency_rank <= %(threshold)s"
+            params['threshold'] = freq_rank_threshold
         
         df = pd.read_sql_query(query, conn, params=params)
     

@@ -18,10 +18,11 @@ def init_db():
                         id SERIAL PRIMARY KEY,
                         language VARCHAR(50) NOT NULL,
                         word TEXT NOT NULL,
-                        definition TEXT NOT NULL
+                        definition TEXT NOT NULL,
+                        frequency_rank INT DEFAULT 999999
                     )
                 """)
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_lang_word ON words (language, word)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_lang_word_freq ON words (language, frequency_rank, word)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_word ON words (word)")
         print("Database initialized successfully.")
     except psycopg2.OperationalError as e:

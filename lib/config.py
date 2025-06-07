@@ -46,3 +46,20 @@ META_KEYWORDS = [
     'surname ',
     'old variant of',
 ]
+
+# --- Frequency List Configuration ---
+# URLs for downloading word frequency lists.
+FREQUENCY_CONFIG = [
+    {
+        'name': 'Japanese',
+        # Source: https://github.com/chriskempson/japanese-subtitles-word-kanji-frequency-lists
+        'url': 'https://raw.githubusercontent.com/chriskempson/japanese-subtitles-word-kanji-frequency-lists/master/word_freq_report.txt',
+        'local_path': os.path.join(DICT_DIR, 'jp_freq.txt'),
+    },
+    {
+        'name': 'Chinese',
+        # Source: https://github.com/hermitdave/FrequencyWords/
+        'url': 'https://raw.githubusercontent.com/hermitdave/FrequencyWords/refs/heads/master/content/2018/zh_cn/zh_cn_50k.txt',
+        'local_path': os.path.join(DICT_DIR, 'zh_freq.txt'),
+    }
+]
